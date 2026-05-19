@@ -4,6 +4,7 @@ using System;
 using Attributes;
 using CommandSystem;
 using CustomItems;
+using EasyTmp;
 using Exiled.API.Enums;
 using Exiled.Events.EventArgs.Player;
 using Extensions;
@@ -117,7 +118,7 @@ public abstract class Shiv
 public class ShivsEnable : ICommand
 {
     public string Command => "turnthemshivson";
-    public string[] Aliases => ["ShivsOn", "shivon", "shivson", "shivenable", "enableshivs"];
+    public string[] Aliases => ["ShivsOn", "shivon", "shivenable", "enableshivs"];
     public string Description => "Enables the shiv item. As soon as this is disabled, all shivs turn into adrenaline.";
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -148,13 +149,13 @@ public class ShivsDisable : ICommand
         if (!sender.CheckRemoteAdmin(out response))
             return false;
 
-        response = "<color=blue>Shiv</color><color=orange>s are already</color> <color=red>disabled</color><color=orange>.</color>";
+        response = EasyArgs.Build().Blue("Shivs").Space().Orange("are already").Space().Red("disabled").Orange(".").NewLine().Orange($"Note:").Space().Blue("mining").Orange($"is currently {Mining.IsEnabled}.").Done();
         if (!Shiv.IsEnabled)
             return false;
 
         Shiv.IsEnabled = !Shiv.IsEnabled;
 
-        response = "<color=blue>Shiv</color><color=orange>s are now</color> <color=red>disabled</color><color=orange>.</color>";
+        response = EasyArgs.Build().Blue("Shivs").Space().Orange("are now").Space().Red("disabled").Orange(".").NewLine().Orange($"Note:").Space().Blue("mining").Orange($"is currently {Mining.IsEnabled}.").Done();
         return true;
     }
 }

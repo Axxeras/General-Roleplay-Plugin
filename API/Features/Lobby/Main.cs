@@ -32,7 +32,7 @@ using Door = Exiled.API.Features.Doors.Door;
 using Logger = LabApi.Features.Console.Logger;
 using Random = System.Random;
 using Round = Exiled.API.Features.Round;
-using Scp914 = Features.Scp914;
+using Scp914 = Scp914;
 
 public abstract class Main
 {
@@ -50,17 +50,19 @@ public abstract class Main
     [OnPluginEnabled]
     public static void InitEvents()
     {
+        if (Plugin.Singleton == null) return;
         ServerHandlers.WaitingForPlayers += WaitingForPlayers;
         PlayerHandlers.Dying += OnLeaving;
 
         StaticUnityMethods.OnUpdate -= (Action)DeadmanSwitch.OnUpdate;
-        if (Plugin.Singleton.Config.MapsToLoadOnLobby == null) return;
+        // if (Plugin.Singleton.Config.MapsToLoadOnLobby == null) return;
         
         
     }
 
     private static void WaitingForPlayers() // reset methodd !
     {
+        if (Plugin.Singleton == null) return;
         PlayerHandlers.Verified -= OnJoined;
 
         if (Scp2536Controller.Singleton)
@@ -75,17 +77,6 @@ public abstract class Main
         Mining.IsEnabled = Plugin.Singleton.Config.ShivsNormalRounds;
         RoleplayTime.StopClock();
     }
-
-    private static void LoadRoleplaySchematics()
-    {
-        
-    }
-
-    private static void UnloadRoleplaySchematics()
-    {
-        
-    }
-
     private static void OnLeaving(DyingEventArgs ev)
     {
         if (ev.DamageHandler.Type == DamageType.Unknown)
@@ -98,8 +89,9 @@ public abstract class Main
     {
         if (!IsLobby) return;
 
+        player.ReferenceHub.nicknameSync._playerInfoToShow = (PlayerInfoArea)5;
         player.Role.Set(RoleTypeId.Tutorial, SpawnReason.None, RoleSpawnFlags.All);
-        if (Plugin.Singleton.Config.LobbySchematic != "unset")
+        if (Plugin.Singleton != null && Plugin.Singleton.Config.LobbySchematic != "unset")
             Timing.CallDelayed(Timing.WaitForOneFrame,
                 () => player.Position = new Vector3(Plugin.Singleton.Config.LobbySpawnLocationX,
                     Plugin.Singleton.Config.LobbySpawnLocationY, Plugin.Singleton.Config.LobbySpawnLocationZ));
@@ -119,6 +111,11 @@ public class UseLobbyCommand : ICommand
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
+        if (Plugin.Singleton == null)
+        {
+            response = "Error. Plugin.Singleton is null. Please contact z5tm.";
+            return false;
+        }
         if (!sender.CheckPermission("grpp.lobby"))
         {
             response =
@@ -167,7 +164,7 @@ public class UseLobbyCommand : ICommand
                 }
                 catch (Exception e)
                 {
-                    Logger.Debug($"Failure when attempting to load maps. \"{e.Message}\"");
+                    Logger.Debug($"Failure when attempting to load maps. \"{e.Message}\" -- Attempted map: {map}");
                 }
         }
 
@@ -183,7 +180,7 @@ public class UseLobbyCommand : ICommand
         {
             var lobbySchematic = Plugin.Singleton.Config.LobbySchematic;
             if (lobbySchematic != null)
-                Main.Schematic = ObjectSpawner.SpawnSchematic(lobbySchematic, Vector3.zero, Vector3.zero);
+                Main.Schematic = ObjectSpawner.SpawnSchematic(lobbySchematic, Vector3.zero, Vector3.zero); // todo config
         }
 
         Round.Start();
@@ -203,7 +200,7 @@ public class UseLobbyCommand : ICommand
         TeslaGate12.IsEnabled = false;
         SpawnWaves.IsEnabled = false;
 
-        _ = AsyncWebhookRPLobby.AsyncOps("lobby"/*sender*/);
+        _ = AsyncWebhookHandler.AsyncWebhookTasks("lobby"/*sender*/);
 
         Door.LockAll(999999, DoorLockType.AdminCommand); // can also use NoPower // i see why the last devs did this. the fuckass ra panel can't - okay it's cuz of somethin else weird idfk. works now with admincommand.
         foreach (var player in ExPlayer.List) Main.Action(player);
@@ -301,7 +298,7 @@ public class BeginRoleplay : ICommand
         //     
         // }
         
-        _ = AsyncWebhookRPLobby.AsyncOps("roleplay"/*sender*/);
+        _ = AsyncWebhookHandler.AsyncWebhookTasks("roleplay"/*sender*/);
         
         if (arguments.Count <= 0)
         {
@@ -493,7 +490,7 @@ public class EndRoleplay : ICommand
         Name.IsEnabled = true;
         Info.IsEnabled = true;
         
-        _ = AsyncWebhookRPLobby.AsyncOps("end");
+        _ = AsyncWebhookHandler.AsyncWebhookTasks("end");
 
         if (arguments.Count == 0)
             LabApi.Features.Console.Logger.Debug("No arguments passed to rp0.");
@@ -510,7 +507,7 @@ public class EndRoleplay : ICommand
                 arguments.At(1) == "unlock")
                 Round.IsLocked = false;
         }
-        if (Plugin.Singleton.Config.LobbyShouldUnloadMaps ?? false) // if lobby should unload on maps is enabled (with a default to false if null)
+        if (Plugin.Singleton?.Config.LobbyShouldUnloadMaps ?? false) // if lobby should unload on maps is enabled (with a default to false if null)
         {
             foreach (var map in Main.LoadedMaps) // for each map in this list,
                 MapUtils.UnloadMap(map); // unload the map.

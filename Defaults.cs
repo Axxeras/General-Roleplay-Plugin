@@ -16,5 +16,6 @@ public static class Defaults
     public const int InfoMaxLength = 50;
     public const float MaxHeight = 1.1f;
     public const float MinHeight = 0.9f;
+    public const int MaximumCreateDescription = 50;
 
 }

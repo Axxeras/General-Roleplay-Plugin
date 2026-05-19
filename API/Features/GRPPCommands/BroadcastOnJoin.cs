@@ -7,6 +7,7 @@ using Attributes;
 using CommandSystem;
 using EasyTmp;
 using Extensions;
+using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Console;
@@ -21,9 +22,14 @@ public abstract class BroadcastJoin
     public static string? WarningText;
     public static ushort WarningTime;
 
+    [UsedImplicitly]
     [OnPluginEnabled]
     public static void InitEvents()
     {
+        BroadcastJoinTime = 0;
+        BroadcastJoinText = null;
+        WarningSet = false;
+        BroadcastSet = false;
         ServerEvents.WaitingForPlayers += WaitingForPlayers;
         PlayerEvents.Joined += BroadcastJoiner;
         PlayerEvents.Spawned += BroadcastSpawner;
@@ -55,6 +61,7 @@ public abstract class BroadcastJoin
     }
 }
 
+[UsedImplicitly]
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
 public class BroadcastOnJoin : ICommand
 {
@@ -95,6 +102,8 @@ public class BroadcastOnJoin : ICommand
         return true;
     }
 }
+
+[UsedImplicitly]
 [CommandHandler(typeof(GameConsoleCommandHandler))]
 public class BroadcastOnJoinConsole : ICommand
 {
@@ -132,6 +141,8 @@ public class BroadcastOnJoinConsole : ICommand
         return true;
     }
 }
+
+[UsedImplicitly]
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
 public class WarnOnJoin : ICommand
 {

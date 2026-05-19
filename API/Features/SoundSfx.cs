@@ -102,7 +102,7 @@ public class SoundSfx
                 audioClipPlayback = speaker.Owner.AddClip(Plugin.Singleton.Config.ParticleSfx);
                 break;
 
-            case FirearmType.None:
+            // case FirearmType.None:
             default:
                 speaker.Destroy();
                 return;

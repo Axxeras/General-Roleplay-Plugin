@@ -16,14 +16,14 @@ public class Config : IConfig
     public bool IsEnabled { get; set; } = true;
 
     [Description("Which maps to load upon using lobby! Can be empty or only have one.")]
-    public List<string>? MapsToLoadOnLobby { get; set; } = ["epicgamermap", "epicgamermap2"];
+    public List<string>? MapsToLoadOnLobby { get; set; } = [];
 
     [Description("Whether to unload the maps on lobby usage! Use this if you want to have different maps for normal rounds and for roleplays! :D")]
     public bool? LobbyShouldUnloadMaps = false;
 
     [Description("Should debug logs be enabled? (This is required for webhook implementation, as it enables TLS 2 + 3.)")]
     public bool Debug { get; set; } = false;
-    [Description("Where players spawn when lobby is enabled. `xf`, `0f`/`2921f` format. Request data in-game through the RA to grab this.")]
+    [Description("Where players spawn when lobby is enabled. `Xf`, `0f`/`2921f` format. Request data in-game through the RA to grab this.")]
     public float LobbySpawnLocationX { get; set; } = 0f;
     public float LobbySpawnLocationY { get; set; } = 0f;
     public float LobbySpawnLocationZ { get; set; } = 0f;
@@ -114,5 +114,10 @@ public class Config : IConfig
     // [Description("List of SteamID64s that are permitted to bypass restrictive mode.")] public List<String>? BypassID64 { get; set; } = [];
     // [Description("List of roles that are permitted to bypass restrictive modes. This is not a required field, and should only be used if permissions are not being set. If you need assistance, join our discord.")] public List<String>? BypassRoles { get; set; } = [];
     [Description("Whether players should be permitted to use the audio player, using `/au`. This is HIGHLY unrecommended.")] public bool ClientAu { get; set; } = false;
-    
+    [Description("Whether to utilize async while creating directories.")] public bool? CreateDirectoryAsync { get; set; }= true;
+
+    [Description("Permits non-RA users to use `.print` to create janitoral keycards with information on them. Even if enabled in config, this must be enabled through RA with `printon`.")] public bool AllowClientCreateCommand { get; set; } = false;
+    [Description("Maximum amount of characters allowed in the Print client command.")] public int? MaximumCreateDescription { get; set; } = 50;
+
+    [Description("Client-sided print command webhook logging URL.")] public string PrintCommandWebhookUrl { get; set; } = string.Empty;
 }

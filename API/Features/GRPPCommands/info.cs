@@ -1,26 +1,26 @@
 namespace GRPP.API.Features.GRPPCommands;
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CommandSystem;
 using EasyTmp;
-using GRPP.API.Attributes;
-using GRPP.API.Features.CustomItems;
-using GRPP.API.Features.Items;
-using GRPP.Extensions;
+using Attributes;
+using Extensions;
+using JetBrains.Annotations;
 
 public abstract class Info
 {
     public static bool IsEnabled;
-    
+
+    [UsedImplicitly]
     [OnPluginEnabled]
     public static void InitEvents() => ServerHandlers.WaitingForPlayers += WaitingForPlayers;
 
     private static void WaitingForPlayers() => IsEnabled = false;
 }
 
+[UsedImplicitly]
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
 public class InfoEnable : ICommand
 {
@@ -44,6 +44,7 @@ public class InfoEnable : ICommand
     }
 }
 
+[UsedImplicitly]
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
 public class InfoDisable : ICommand
 {
@@ -67,17 +68,17 @@ public class InfoDisable : ICommand
     }
 }
 
-
+[UsedImplicitly]
 [CommandHandler(typeof(ClientCommandHandler))]
 public class InfoClient : ICommand
 {
     public string Command => "Info";
     public string[] Aliases => ["Information", "custominfo", "inf"];
-    public string Description => "Gives you a custom information tag for RP purposes : Info (customi, use `\n` to make a newline.)";
+    public string Description => "Gives you a custom information tag for RP purposes : Info (customi, use `\\n` to make a newline.)";
     
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-        if (!Info.IsEnabled)
+        if (!Info.IsEnabled || Plugin.Singleton == null)
         {
             response = "This feature is currently disabled!";
             return false;
@@ -91,7 +92,8 @@ public class InfoClient : ICommand
             return true;
         }
         foreach (var word in arguments)
-        foreach (var _ in Plugin.Singleton.Config.Blocklist.Where(target => word.Equals(target, StringComparison.OrdinalIgnoreCase))) player.Ban(1577000000, "Automated ban. Appeal on the discord if you believe this was false.");
+            foreach (var _ in Plugin.Singleton.Config.Blocklist.Where(target => word.Equals(target, StringComparison.OrdinalIgnoreCase))) 
+                player.Ban(1577000000, "Automated ban. Appeal on the discord if you believe this was false.");
 
         var customInfo = string.Join(" ", arguments);
         player.CustomInfo = customInfo.Length < (Plugin.Singleton.Config.InfoMaxLength ?? Defaults.InfoMaxLength) ? 

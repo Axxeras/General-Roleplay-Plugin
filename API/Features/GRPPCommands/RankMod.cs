@@ -9,9 +9,7 @@ using EasyTmp;
 using Exiled.API.Features;
 using Exiled.Permissions.Extensions;
 using Extensions;
-using InventorySystem.Items.Usables.Scp330;
 using Lobby;
-using ProjectMER.Features.Extensions;
 
 public abstract class RankMod
 {

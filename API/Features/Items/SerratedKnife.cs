@@ -60,7 +60,7 @@ public sealed class SerratedKnife : CustomItemHandler
 
         // ev.Player.ShowHint("", 5f);
         ev.Player.EnableEffect(EffectType.Concussed, 5f);
-        ev.Player.EnableEffect(EffectType.Decontaminating, 5f, false);
+        ev.Player.EnableEffect(EffectType.Decontaminating, 2f, false);
         //ev.Player.EnableEffect(EffectType.Traumatized, 50f); ermmm why did it make you traumatized LMAOO
     }
 

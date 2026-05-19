@@ -1,9 +1,14 @@
 namespace GRPP.API.Features.Items;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using CommandSystem;
+using Core.Webhooks;
 using CustomItems;
+using EasyTmp;
 using Exiled.Events.EventArgs.Player;
+using Exiled.Permissions.Extensions;
 using Extensions;
 using InventorySystem.Items;
 
@@ -78,30 +83,100 @@ public sealed class CustomHandler : CustomItemHandler
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
 public class GiveCustomItem : ICommand
 {
-    public string Command => "gic";
-    public string[] Aliases { get; } = ["givecustomitem"];
-    public string Description => "gic {Item Type} {Custom Item Name}";
+    public string Command => "givecustomitem";
+    public string[] Aliases { get; } = ["gic"];
+    public string Description => EasyArgs.Build().CmdArguments("gic itemID itemName").Done();
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
         if (!sender.CheckRemoteAdmin(out response))
             return false;
 
-        if (arguments.Count < 1 || !Enum.TryParse(arguments.At(0), true, out ItemType type))
+        if (arguments.Count < 1 || !Enum.TryParse(arguments.At(0), true, out ItemType itemType))
         {
-            response = "<color=red>Invalid Item Type";
+            response = "<color=orange>Invalid item ID. Please try again.</color>";
             return false;
         }
 
-        // Get the arguments after the first one
-        var additionalArguments = new ArraySegment<string>(arguments.Array!, arguments.Offset + 1, arguments.Count - 1);
+        var itemName = string.Join(" ", arguments.Skip(1));
+        
+        CustomItemsManager.Get<CustomHandler>().GiveItem(ExPlayer.Get(sender), itemName, itemType);
 
-        // Join the additional arguments into a single string if needed
-        var additionalArgumentsString = string.Join(" ", additionalArguments);
+        response = $"<color=green>You gave yourself {itemName}";
+        return true;
+    }
+}
 
-        CustomItemsManager.Get<CustomHandler>().GiveItem(ExPlayer.Get(sender), additionalArgumentsString, type);
+[CommandHandler(typeof(ClientCommandHandler))]
+public class PrintCommand : ICommand
+{
+    public string Command => "print";
+    public string[] Aliases { get; } = ["printf"];
+    public string Description => EasyArgs.Build().CmdArguments("print itemDescription").Done();
 
-        response = $"<color=green>You gave yourself {additionalArgumentsString}";
+    public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
+    {
+        var plr = ExPlayer.Get(sender);
+        response = EasyArgs.Build().Orange("Sorry, but this command is currently").Space().Red("disabled").Orange(". Please try again later.").Done();
+        if ((!Plugin.Singleton?.Config.AllowClientCreateCommand ?? true) || (!Plugin.Singleton.GlobalConfig?.PrintEnabled ?? true) || plr.IsDead || !plr.IsConnected || !plr.GameObject)
+            return false;
+        
+        response = EasyArgs.Build().Red("Error!").Space().Orange("Invalid amount of arguments.").Done();
+        if (arguments.Count < 1 || arguments.Sum(arg => arg.Length) > (Plugin.Singleton.Config.MaximumCreateDescription ?? Defaults.MaximumCreateDescription))
+            return false;
+        
+        var itemDescription = string.Join(" ", arguments);
+
+        CustomItemsManager.Get<CustomHandler>().GiveItem(plr, itemDescription, ItemType.KeycardJanitor);
+
+        if (!Plugin.Singleton.Config.PrintCommandWebhookUrl.IsEmpty())
+            _ = AsyncWebhookHandler.LogMessage(
+                webhookNameToUse:"PrintLogger", 
+                webhookUrl:Plugin.Singleton.Config.PrintCommandWebhookUrl, 
+                title:"Printed.", 
+                description:$"A user has printed an item.\nName: \"{plr.DisplayNickname}\"\nSteamID64: \"{plr.UserId}\"\nItemDescription: \"{itemDescription}\"", 
+                color:"880808");
+        
+        response = $"<color=orange>Printed</color> <color=blue>{itemDescription}</color><color=orange>!</color>";
+        return true;
+    }
+}
+
+[CommandHandler((typeof(RemoteAdminCommandHandler)))]
+public class PrintToggle : ICommand
+{
+    public string Command { get; set; } = "PrintToggle";
+    public string[] Aliases { get; set; } = ["PrintMod", "ModPrint", "TogglePrint"];
+    public string Description { get; set; } = "Toggles (or enables/disables) print.";
+    private string Usage { get; set; } = EasyArgs.Build().CmdArguments("printtoggle opt-true/false").Done();
+    public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
+    {
+        response = "Plugin.Singleton is null. Contact z5tm.";
+        if (Plugin.Singleton?.GlobalConfig == null)
+            return false;
+        if (!sender.CheckRemoteAdmin(out response))
+            return false;
+
+        response = EasyArgs.Build().Orange("Sorry, but you do not have the").Space().Blue("grpp.print").Space().Orange("permission.").Done();
+        if (!sender.CheckPermission("grpp.print"))
+            return false;
+
+        response = Usage;
+        if (arguments.Count > 1)
+            return false;
+        var emptyArgs = arguments.IsEmpty();
+
+        Plugin.Singleton.GlobalConfig.PrintEnabled = emptyArgs switch
+        {
+            true => !Plugin.Singleton.GlobalConfig.PrintEnabled,
+            false when bool.TryParse(arguments.At(0), out var status) => !status,
+            _ => Plugin.Singleton.GlobalConfig.PrintEnabled
+        } || (!emptyArgs && arguments.At(0) == "t");
+
+        if (!emptyArgs && arguments.At(0) == "f") Plugin.Singleton.GlobalConfig.PrintEnabled = false;
+        
+        var responseBuilder = EasyArgs.Build().Orange($"PrintEnabled has been set to").Space();
+        response = Plugin.Singleton.GlobalConfig.PrintEnabled ? responseBuilder.Green("true!").Done() : responseBuilder.Red("false!").Done();
         return true;
     }
 }

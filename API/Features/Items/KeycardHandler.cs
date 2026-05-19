@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using CommandSystem;
 using Core;
 using CustomItems;
@@ -186,16 +185,19 @@ public sealed class KeycardHandler : CustomItemHandler
         if (!Main.IsRoleplay)
             return;
 
-        if (ev.Player.IsBypassModeEnabled)
+        if (ev.Player?.IsBypassModeEnabled ?? true)
+            return;
+
+        if (ev.Player.CurrentItem == null) 
             return;
 
         Keycard card;
 
-        switch (ev.InteractingLocker.Type)
+        switch (ev.InteractingLocker?.Type)
         {
             case LockerType.LargeGun:
             case LockerType.RifleRack:
-                if (ev.InteractingChamber.RequiredPermissions == KeycardPermissions.None)
+                if (ev.InteractingChamber?.RequiredPermissions == KeycardPermissions.None)
                     return;
                 ev.IsAllowed = false;
                 if (!Container.HasItem(ev.Player.CurrentItem.Serial, out card))

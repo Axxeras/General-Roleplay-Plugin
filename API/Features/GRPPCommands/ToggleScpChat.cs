@@ -91,7 +91,7 @@ public class ToggleScpChat : ICommand
         {
             foreach (ExPlayer player in ExPlayer.List.Where(p => p != ev.Player && (p.IsScp || ToggledPlayers.Contains(p))))
             {
-                msgCopy.Channel = VoiceChatChannel.ScpChat; // ScpChat doesn't work for some reason // attempting scpchat again
+                msgCopy.Channel = VoiceChatChannel.ScpChat;
                 player.ReferenceHub.connectionToClient.Send(msgCopy);
             }
 
@@ -99,12 +99,12 @@ public class ToggleScpChat : ICommand
             return;
         }
 
-        if (msgCopy.Channel == VoiceChatChannel.ScpChat)
-            foreach (ExPlayer player in ToggledPlayers)
-            {
-                msgCopy.Channel = VoiceChatChannel.Intercom;
-                player.ReferenceHub.connectionToClient.Send(msgCopy);
-            }
+        if (msgCopy.Channel != VoiceChatChannel.ScpChat) return;
+        foreach (var player in ToggledPlayers)
+        {
+            msgCopy.Channel = VoiceChatChannel.Intercom;
+            player.ReferenceHub.connectionToClient.Send(msgCopy);
+        }
     }
 
     private static void WaitingForPlayers()

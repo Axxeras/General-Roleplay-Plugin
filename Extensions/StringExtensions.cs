@@ -9,6 +9,6 @@ public static class StringExtensions
     {
         if (!string.IsNullOrEmpty(stringToCut)) return stringToCut.Length <= cutLength ? stringToCut : stringToCut.AsSpan(0, cutLength).ToString();
         Logger.Error("Error when attempting to cut string. String was null or empty.");
-        return string.Empty; // if stirng is null or empty, return nothing.
+        return string.Empty; // if string is null or empty, return nothing.
     }
 }

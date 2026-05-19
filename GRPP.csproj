@@ -17,8 +17,11 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.2" PrivateAssets="all" />
+        <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1" />
         <PackageReference Include="ExMod.Exiled" Version="9.13.3" />
+
+
+        <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.2" PrivateAssets="all" />
         <PackageReference Include="Mono.HttpUtility" Version="1.0.0.1"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
         <PackageReference Include="BigHelp.Http" Version="0.3.2"/>
@@ -32,14 +35,16 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 
-        <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1" />
 
         <PackageReference Include="System.Net.Http" Version="4.3.4" />
     </ItemGroup>
 
     <ItemGroup>
+        <!--Dependencies-->
         <Reference Include="ProjectMer" HintPath="lib/ProjectMER.dll" Private="False" />
         <Reference Include="AudioPlayer" HintPath="lib/AudioPlayer.dll" Private="False" />
+        
+        <!--Base-SL-->
         <Reference Include="Mirror" HintPath="$(SL_REFERENCES)/Mirror-Publicized.dll" Private="False" />
         <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)/Assembly-CSharp-Publicized.dll" Private="False" />
         <Reference Include="Assembly-CSharp-firstpass" HintPath="$(SL_REFERENCES)/Assembly-CSharp-firstpass.dll" Private="False" />
@@ -94,7 +99,4 @@
             DebugInfo = "true"
         />
     </Target>
-<!--    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">-->
-<!--        <Variable1>DebugValue</Variable1>-->
-<!--    </PropertyGroup>-->
 </Project>

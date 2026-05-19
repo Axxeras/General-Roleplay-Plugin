@@ -5,14 +5,17 @@ using CommandSystem;
 using Exiled.Events.EventArgs.Scp914;
 using MEC;
 using Attributes;
+using EasyTmp;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using Extensions;
+using JetBrains.Annotations;
 
 public static class Scp914
 {
     public static bool IsEnabled;
 
+    [UsedImplicitly]
     [OnPluginEnabled]
     public static void InitEvents()
     {
@@ -37,6 +40,7 @@ public static class Scp914
     private static void WaitingForPlayers() => IsEnabled = false;
 }
 
+[UsedImplicitly]
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
 public class Scp914AlarmEnable : ICommand
 {
@@ -49,17 +53,22 @@ public class Scp914AlarmEnable : ICommand
         if (!sender.CheckRemoteAdmin(out response))
             return false;
 
-        response = "<color=red>SCP-914's Alarm is already Enabled";
+        response = EasyArgs.Build()
+            .Orange("SCP-914's alarm is already")
+            .Space().Green("enabled!").Done();
         if (Scp914.IsEnabled)
             return false;
 
         Scp914.IsEnabled = !Scp914.IsEnabled;
 
-        response = "<color=green>SCP-914's Alarm is now Enabled";
+        response = EasyArgs.Build()
+            .Orange("SCP-914's alarm is now")
+            .Space().Green("enabled!").Done();
         return true;
     }
 }
 
+[UsedImplicitly]
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
 public class Scp914AlarmDisable : ICommand
 {
@@ -72,13 +81,17 @@ public class Scp914AlarmDisable : ICommand
         if (!sender.CheckRemoteAdmin(out response))
             return false;
 
-        response = "<color=red>SCP-914's Alarm is already Disabled";
+        response = EasyArgs.Build()
+            .Orange("SCP-914's alarm is already")
+            .Space().Red("disabled!").Done();
         if (!Scp914.IsEnabled)
             return false;
 
         Scp914.IsEnabled = !Scp914.IsEnabled;
 
-        response = "<color=green>SCP-914's Alarm is now Disabled";
+        response = EasyArgs.Build()
+            .Orange("SCP-914's alarm is now")
+            .Space().Red("disabled!").Done();
         return true;
     }
 }

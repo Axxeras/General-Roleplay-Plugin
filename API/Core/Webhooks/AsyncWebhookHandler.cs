@@ -8,16 +8,15 @@ using Features;
 using Player = LabApi.Features.Wrappers.Player;
 using Server = LabApi.Features.Wrappers.Server;
 
-public static class AsyncWebhookRPLobby
+public static class AsyncWebhookHandler
 {
     public static async Task
-        AsyncOps(
+        AsyncWebhookTasks(
             string startType /*ICommandSender sender*/) // we can pass args here too but not necessary! // okay we can pass sender here but not necessary :D
     {
-        if (Plugin.Singleton.Config?.RPWebHook == null || !Plugin.Singleton.Config.RPWebHook.IsItAWebhook())
+        if (Plugin.Singleton?.Config?.RPWebHook == null || !Plugin.Singleton.Config.RPWebHook.IsItAWebhook())
         {
-            Log.Warn(
-                "No webhook has been set up, or the webhook has been set up improperly, so we are not sending a webhook.");
+            Log.Warn("No webhook has been set up, or the webhook has been set up improperly, so we are not sending a webhook.");
             return;
         }
 
@@ -57,13 +56,13 @@ public static class AsyncWebhookRPLobby
             await new WebhookHandler().UseWebhook(
                 startName ?? Defaults.WebhookRPStartName,
                 Plugin.Singleton.Config.RPWebHook,
-                Plugin.Singleton.Config.WebhookRPExtraArgTitle ??
-                Defaults
-                    .WebhookRPExtraArgTitle, // this is for like a secondary section - we can't nullify this, tested. try if you'd like tho
-                Plugin.Singleton.Config.WebhookRPExtraArgDesc ??
-                Defaults
-                    .WebhookRPExtraArgDesc, // this is for like a secondary section - we can't nullify this, tested. try if you'd like tho
-                whatToDescription,
+                Plugin.Singleton.Config.WebhookRPExtraArgTitle 
+                ?? Defaults.WebhookRPExtraArgTitle, // this is for like a secondary section - we can't nullify this, tested. try if you'd like tho
+                
+                Plugin.Singleton.Config.WebhookRPExtraArgDesc 
+                ?? Defaults.WebhookRPExtraArgDesc, // this is for like a secondary section - we can't nullify this, tested. try if you'd like tho
+                
+                whatToDescription, 
                 startMsg ?? Defaults.WebhookRPStartMsg,
                 color,
                 Plugin.Singleton.Config?.WebhookRPInLine ?? Defaults.WebhookRPInLine,
@@ -77,5 +76,21 @@ public static class AsyncWebhookRPLobby
                 $"There has been an error whilst attempting to handle the webhooks. Error: {Environment.NewLine}\"{e}\"");
         }
         // GUESS WHO TRIED IT AGAIN LATER!!! ^^^^^^^^ // OKAY THIS IS LIKE THE NEXT DAY. WOOO I'M SO MUCH MORE FAMILIAR WITH THISSS 
+    }
+
+    public static async Task<Boolean> LogMessage(string webhookNameToUse, string webhookUrl, string title, string description, string color)
+    {
+        if (webhookUrl == null) throw new ArgumentNullException(nameof(webhookUrl));
+        
+        if (!webhookUrl.IsItAWebhook()) return false;
+        try
+        {
+            await new WebhookHandler().UseWebhook(webhookNameToUse, webhookUrl, string.Empty, string.Empty, description, title, color, true, true, true).ConfigureAwait(false); // configuredtaskawaitable, also the configureawait false is essentially just a minor performance gain because we're running on, well, a plugin -- anyways, 
+        }
+        catch (Exception e)
+        {
+            Log.Error($"There has been an error whilst attempting to handle the webhooks. Error: {Environment.NewLine}\"{e}\"");
+        }
+        return true;
     }
 }

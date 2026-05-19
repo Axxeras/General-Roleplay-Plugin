@@ -228,7 +228,7 @@ public class NameClient : ICommand
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-        if (!Name.IsEnabled)
+        if (!Name.IsEnabled || Plugin.Singleton == null)
         {
             response = "This feature is currently disabled!";
             return false;
