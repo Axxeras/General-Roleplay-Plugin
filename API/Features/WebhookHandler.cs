@@ -12,10 +12,9 @@ public class WebhookHandler
     // // int threads = Environment.ProcessorCount; // just in case we ever need to modify this to optimize it for better-suited systems in the future, i'll keep this here - as i access this file often.
     private static readonly HttpClient Client  = new HttpClient();
     
-    public async Task UseWebhook(string webhookNameToUse, string webhookUrl, string arg3, string arg4, string description, string title,
-        string color, bool inline, bool timestamps)
+    public async Task UseWebhook(string webhookNameToUse, string webhookUrl, string arg3, string arg4, string description, string title, string color, bool inline, bool timestamps, bool experimental = false)
     {
-        if (timestamps)
+        if (timestamps && !experimental)
         {
             var embed = new
             {
@@ -26,20 +25,18 @@ public class WebhookHandler
                     {
                         title,
                         description,
-                        color = int.Parse(color),
+                        color = uint.Parse(color),
                         fields = new[] 
                         {
                             new { name = arg3, value = arg4, inline},
                         },
                         timestamp = DateTime.UtcNow.ToString("O"),
-                        thread_name = "test!"
                     } 
-                    // we can include a "thread_name" if we'd like to, for forums orr extra info 
-                },
+                }
             };
             await PostWebhook(webhookUrl, embed);
         }
-        else
+        else if (!experimental)
         {
             var embed = new
             {
@@ -50,13 +47,31 @@ public class WebhookHandler
                     {
                         title,
                         description,
-                        color = int.Parse(color),
+                        color = uint.Parse(color),
                         fields = new[]
                         {
                             new { name = $"{arg3}", value = $"{arg3}", inline},
-                        },
+                        }
                     }
-                },
+                }
+            };
+            await PostWebhook(webhookUrl, embed);
+        }
+
+        if (experimental)
+        {
+            var embed = new
+            {
+                username = webhookNameToUse,
+                embeds = new[]
+                {
+                    new
+                    {
+                        title,
+                        description,
+                        color = uint.Parse(color),
+                    }
+                }
             };
             await PostWebhook(webhookUrl, embed);
         }
