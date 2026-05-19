@@ -3,8 +3,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Attributes;
+using Core;
 using Exiled.API.Features;
+using Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using PlayerRoles;
@@ -14,8 +17,10 @@ public class Department
     public static Dictionary<string, DepartmentInfo> DepartmentsData = new();
 
     [OnPluginEnabled]
-    public static void Init()
+    public static async Task<bool> Init() // may fail since it has a return value, todo look into
     {
+        if (Plugin.Singleton == null) return false;
+        
         if (!Directory.Exists(Path.Combine(Paths.Configs, "GRPP")))
             Directory.CreateDirectory(Path.Combine(Paths.Configs, "GRPP"));
         foreach (var files in Directory.GetFiles(Path.Combine(Paths.Configs, "GRPP")))
@@ -27,13 +32,25 @@ public class Department
             if (files == Path.Combine(Paths.Configs, "GRPP", "Users.json"))
                 continue;
             var data = JsonConvert.DeserializeObject<DepartmentInfo>(File.ReadAllText(files));
-            DepartmentsData.Add(data.Department, data);
+            if (data?.Department != null)
+                DepartmentsData.Add(data.Department, data);
+            
+            var scaffolded = TypeScaffold.Scaffold(typeof(DepartmentInfo));
+            if (scaffolded == null)
+            {
+                Log.Error("Major internal error when attempting to write ItemConfig basic config. Please consult @z5tm to attempt to re-parse this.");
+                return false;
+            }
+            var example = JsonConvert.SerializeObject(scaffolded, Formatting.Indented);
+            var asyncz = new AsyncFileUtility();
+            await asyncz.WriteFileFromString(example, Path.Combine(Paths.Configs, "GRPP", "example.yml"), null);
         }
 
         foreach (var department in Plugin.Singleton.Config.Departments.Where(department => !DepartmentsData.ContainsKey(department))) CreateNewDepartment(department, []);
 
         if (!DepartmentsData.ContainsKey("Other"))
             CreateNewDepartment("Other", []);
+        return true;
     }
 
     public static List<RoleEntry> GetAllRoles(string department) => DepartmentsData.FirstOrDefault(departments => departments.Value.Department == department).Value.Roles;
