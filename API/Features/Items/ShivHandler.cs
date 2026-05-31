@@ -92,7 +92,7 @@ public sealed class ShivHandler : CustomItemHandler
         victim.EnableEffect(EffectType.Blurred, 15, 25);
         victim.EnableEffect(EffectType.Disabled, 255, 50);
         victim.Hurt(35f, DamageType.Bleeding);
-        victim.DropHeldItem(true);
+        // victim.DropHeldItem(true);
         victim.ShowHint("I can't breathe... I've been stabbed", 5);
     }
 

@@ -45,7 +45,7 @@ public class Audio : ICommand
                 foreach (var file in Directory.GetFiles(Path.Combine(Paths.Configs, "GRPP", "audio"), "*.ogg",
                              SearchOption.AllDirectories))
                     sender.Respond(
-                        $"<color=green>> {file.Replace(".ogg", "").Replace(Path.Combine(Paths.Configs, "GRPP", "audio") + "/", "")}");
+                        $"<color=green>> {file.Replace(".ogg", "").Replace(Path.Combine(Paths.Configs, "GRPP", "audio") + "\\", "")}");
 
                 response = $"{response}\n<color=green>> Task Completed";
                 return true;
@@ -53,7 +53,7 @@ public class Audio : ICommand
         }
         catch(Exception e)
         {
-            Log.Info($"The directory at `GRPP/audio/` is likely empty. {e.Message}");
+            Log.Info($"The directory at `GRPP\\audio\\` is likely empty. {e.Message}");
         }
 
         response = arguments.At(0).ToLower() switch
@@ -102,7 +102,7 @@ public class Audio : ICommand
         {
             foreach (var file in Directory.GetFiles(Path.Combine(Paths.Configs, "GRPP", "audio"), "*.ogg", SearchOption.AllDirectories)) 
             {
-                var fileName = file.Replace(".ogg", "").Replace(Path.Combine(Paths.Configs, "GRPP", "audio") + "/", "");
+                var fileName = file.Replace(".ogg", "").Replace(Path.Combine(Paths.Configs, "GRPP", "audio") + "\\", "");
                 if (fileName != audioToPlay) continue;
                 AudioClipStorage.LoadClip(file, fileName);
                 var audioPlayer = AudioPlayer.Create($"AudioPlayer {controllerId}", controllerId: controllerId);
@@ -124,7 +124,7 @@ public class Audio : ICommand
         }
         catch(Exception e)
         {
-            Log.Info($"The directory at `GRPP/audio/` is likely empty. {e.Message}");
+            Log.Info($"The directory at `GRPP\\audio\\` is likely empty. {e.Message}");
         }
 
         return $"<color=red>Attempted to play {audioToPlay}, but no audio was found.\nIf you believe this is an issue please talk to @sticksdev.";

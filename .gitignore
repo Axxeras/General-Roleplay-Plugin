@@ -405,3 +405,7 @@ Plugins/Pooling.dll
 Plugins/Mirror.dll
 Plugins/Assembly-CSharp.dll
 Plugins/Assembly-CSharp-firstpass.dll
+/deps
+/lib
+/GRPP.csproj
+/GRPP.csproj
