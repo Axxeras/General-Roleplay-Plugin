@@ -25,6 +25,7 @@ public class Modmail : ICommand
             if (target.RemoteAdminAccess)
             {
                 target.SendConsoleMessage($"[ModMail] {player.DisplayNickname} ({player.UserId}): {message}", "yellow");
+                target.Broadcast(10, $"New modmail from {player.DisplayNickname} ({player.UserId}). Check the client console!");
             }
         }
         if (!Plugin.Singleton.Config.ModmailCommandWebhookUrl.IsEmpty())
