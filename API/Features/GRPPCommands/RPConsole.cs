@@ -3,22 +3,32 @@ using Exiled.API.Features;
 using GRPP;
 using GRPP.API.Core.Webhooks;
 using System;
-using System.Linq;
+using UnityEngine;
+using Exiled.API.Enums;
 
 [CommandHandler(typeof(ClientCommandHandler))]
 public class RPConsole : ICommand
 {
 	public string Command { get; } = "rp";
-	public string[] Aliases { get; } = new string[] { "rpconsole" };
+	public string[] Aliases { get; } = { "rpconsole" };
 	public string Description { get; } = "Allows you to send a roleplay broadcast to all players in the room with you.";
 
     public void RoomBroadcast(Player player, ushort duration, string message)
     {
         Room currentroom = player.CurrentRoom;
+        Vector3 position = player.Position;
 
         foreach (Player target in Player.List)
         {
-            if (target.CurrentRoom == currentroom)
+            if (target.CurrentRoom.Zone == ZoneType.Surface || target.CurrentRoom.Zone == ZoneType.Unspecified)
+            {
+                if (Vector3.Distance(position, target.Position) <= Plugin.Singleton.Config.RPCommandBroadcastRange)
+                {
+                    target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{player.CustomName} says: " + message);
+                }
+            }
+
+            else if (target.CurrentRoom == currentroom)
             {
                 target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{player.CustomName} says: " + message);
             }
@@ -31,20 +41,20 @@ public class RPConsole : ICommand
 
         var player = Player.Get(sender);
 
-        if (arguments.Count == 0 || arguments.Count == 1)
+        if (arguments.Count == 0)
 		{
 			response = "Usage: .rp [message]";
 			return false;
 		}
 
-		if (!ushort.TryParse(arguments.At(0), out ushort duration))
-		{
-			response = "Invalid duration. The first argument should be the duration of the broadcast in seconds.";
-			return false;
-		}
+        if (!player.IsAlive)
+        {
+            response = "You cannot send a roleplay message while dead!";
+            return false;
+        }
 
-		string message = string.Join(" ", arguments.Skip(1).ToArray());
-		RoomBroadcast(Player.Get(sender), duration, message);
+		string message = string.Join(" ", arguments);
+		RoomBroadcast(Player.Get(sender), Plugin.Singleton.Config.RPCommandBroadcastDuration, message);
 
         if (!Plugin.Singleton.Config.RPCommandWebhookUrl.IsEmpty())
             _ = AsyncWebhookHandler.LogMessage(
