@@ -19,8 +19,7 @@
     <ItemGroup>
         <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1" />
         <PackageReference Include="ExMod.Exiled" Version="9.13.3" />
-
-
+        
         <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.2" PrivateAssets="all" />
         <PackageReference Include="Mono.HttpUtility" Version="1.0.0.1"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
@@ -29,7 +28,7 @@
         <PackageReference Include="ByteSize" Version="2.1.2"/>
         <PackageReference Include="NVorbis" Version="0.10.5"/>
         <PackageReference Include="EasyTmp" Version="1.0.1.5"/>
-
+        
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net481" Version="1.0.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -41,8 +40,9 @@
 
     <ItemGroup>
         <!--Dependencies-->
-        <Reference Include="ProjectMer" HintPath="lib/ProjectMER.dll" Private="False" />
-        <Reference Include="AudioPlayer" HintPath="lib/AudioPlayer.dll" Private="False" />
+        <Reference Include="ProjectMer" HintPath="$(MSBuildProjectDirectory)/lib/ProjectMER.dll" Private="False" />
+        <Reference Include="AudioPlayer" HintPath="(MSBuildProjectDirectory)/lib/AudioPlayer.dll" Private="False" />
+        <Reference Include="AudioPlayerApi" HintPath="lib/AudioPlayerApi.dll" Private="False"/>
         
         <!--Base-SL-->
         <Reference Include="Mirror" HintPath="$(SL_REFERENCES)/Mirror-Publicized.dll" Private="False" />
@@ -82,7 +82,7 @@
             <InputAssemblies Include="$(TargetDir)NVorbis.dll"/>
             <InputAssemblies Include="$(TargetDir)System.ValueTuple.dll"/>
             <InputAssemblies Include="$(TargetDir)0Harmony.dll"/>
-            <InputAssemblies Include="deps/AudioPlayerApi.dll"/>
+            <InputAssemblies Include="lib/AudioPlayerApi.dll"/>
             <InputAssemblies Include="$(TargetDir)EasyTmp.dll"/>
             <!--<InputAssemblies Include="$(TargetDir).dll"/>-->
             <LibraryPath Include="$(NuGetPackageRoot)exmod.exiled/9.13.3/lib/net48/"/>
