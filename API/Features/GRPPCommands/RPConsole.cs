@@ -3,54 +3,49 @@ using Exiled.API.Features;
 using GRPP;
 using GRPP.API.Core.Webhooks;
 using System;
+using System.Linq;
+using EasyTmp;
 using UnityEngine;
 using Exiled.API.Enums;
 
 [CommandHandler(typeof(ClientCommandHandler))]
 public class RPConsole : ICommand
 {
-	public string Command { get; } = "rp";
-	public string[] Aliases { get; } = { "rpconsole" };
-	public string Description { get; } = "Allows you to send a roleplay broadcast to all players in the room with you.";
-
-    public void RoomBroadcast(Player player, ushort duration, string message)
+	public string Command => "rp";
+    public string[] Aliases => ["rpconsole"];
+	public string Description => "Allows you to send a roleplay broadcast to all players in the room with you.";
+    private string Usage = EasyArgs.Build().CmdArguments(".rp message").Done();
+    
+    public static void RoomBroadcast(ExPlayer? broadcastSender, ushort duration, string message)
     {
-        var currentroom = player.CurrentRoom;
-        var position = player.Position;
-
-        if ((currentroom == null) || (position == null))
-        {
+        if (broadcastSender == null)
             return;
-        }
-
-        foreach (var target in Player.List)
+        
+        var currentRoom = broadcastSender.CurrentRoom;
+        var position = broadcastSender.Position;
+        
+        if (currentRoom == null)
+            return;
+        
+        foreach (var target in ExPlayer.List.Where(target => target != null))
         {
-            if ((target.CurrentRoom == null) || (target.Position == null))
+            if (target.CurrentRoom == null)
             {
-                Log.Debug($"Skipping player {target.DisplayNickname} because their current room or position is null.");
+                Log.Debug($"Skipping player {target.DisplayNickname} [{target.UserId}] because their current room is null.");
                 continue;
             }
-
-            if ((target.CurrentRoom.Zone == ZoneType.Surface || target.CurrentRoom.Zone == ZoneType.Unspecified) &&
-                Vector3.Distance(position, target.Position) <= Plugin.Singleton.Config.RPCommandBroadcastRange)
-            {
-                target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{player.CustomName} says: " + message);
-            }
-
-            else if (target.CurrentRoom == currentroom)
-            {
-                target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{player.CustomName} says: " + message);
-            }
+            
+            if (target.CurrentRoom.Zone is ZoneType.Surface or ZoneType.Unspecified &&
+                Vector3.Distance(position, target.Position) <= Plugin.Singleton.Config.RPCommandBroadcastRange || target.CurrentRoom == currentRoom)
+                target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{broadcastSender.CustomName} says: " + message);
         }
-
-        Log.Debug("Roleplay message sent by " + player.DisplayNickname + " in " + currentroom.Name + " with message: " + message);
+        
+        Log.Debug("Roleplay message sent by " + broadcastSender.DisplayNickname + " in " + currentRoom.Name + " with message: " + message);
     }
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-        //rp [duration] [message]
-
-        var player = Player.Get(sender);
-
+        var player = ExPlayer.Get(sender);
+        
         if (!player.IsAlive)
         {
             response = "You cannot send a roleplay message while dead!";
@@ -59,13 +54,13 @@ public class RPConsole : ICommand
 
         if (arguments.Count == 0)
         {
-            response = "Usage: .rp [message]";
+            response = Usage;
             return false;
         }
-
+        
         var message = string.Join(" ", arguments);
         RoomBroadcast(player, Plugin.Singleton.Config.RPCommandBroadcastDuration, message);
-
+        
         if (!Plugin.Singleton.Config.RPCommandWebhookUrl.IsEmpty())
             _ = AsyncWebhookHandler.LogMessage(
                 webhookNameToUse: "RPLogger",
@@ -73,8 +68,7 @@ public class RPConsole : ICommand
                 title: "Roleplay Message",
                 description: $"A user has sent a roleplay message.\nName: \"{player.DisplayNickname}\"\nSteamID64: \"{player.UserId}\"\nMessage: \"{message}\"",
                 color: "880808");
-
-
+        
         response = "Roleplay message successfully sent!";
         return true;
     }
