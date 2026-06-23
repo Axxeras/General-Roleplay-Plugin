@@ -75,22 +75,25 @@ public static class AsyncWebhookHandler
             Log.Error(
                 $"There has been an error whilst attempting to handle the webhooks. Error: {Environment.NewLine}\"{e}\"");
         }
-        // GUESS WHO TRIED IT AGAIN LATER!!! ^^^^^^^^ // OKAY THIS IS LIKE THE NEXT DAY. WOOO I'M SO MUCH MORE FAMILIAR WITH THISSS 
     }
 
     public static async Task<Boolean> LogMessage(string webhookNameToUse, string webhookUrl, string title, string description, string color)
     {
-        if (webhookUrl == null) throw new ArgumentNullException(nameof(webhookUrl));
+        if (webhookUrl == null)
+            throw new ArgumentNullException(nameof(webhookUrl));
         
-        if (!webhookUrl.IsItAWebhook()) return false;
+        if (!webhookUrl.IsItAWebhook())
+            return false;
+        
         try
         {
             await new WebhookHandler().UseWebhook(webhookNameToUse, webhookUrl, string.Empty, string.Empty, description, title, color, true, true, true).ConfigureAwait(false); // configuredtaskawaitable, also the configureawait false is essentially just a minor performance gain because we're running on, well, a plugin -- anyways, 
+            return true;
         }
         catch (Exception e)
         {
             Log.Error($"There has been an error whilst attempting to handle the webhooks. Error: {Environment.NewLine}\"{e}\"");
+            return false;
         }
-        return true;
     }
 }
