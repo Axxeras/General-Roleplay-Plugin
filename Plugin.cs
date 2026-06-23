@@ -23,37 +23,33 @@ using Exiled.API.Enums;
 using Exiled.API.Features;
 using HarmonyLib;
 using ProjectMER.Events.Arguments;
-using UnityEngine;
 using Log = Exiled.API.Features.Log;
 
 public sealed class Plugin : Plugin<Config>
 {
-    static Plugin()
-    {
-        Harmony = new Harmony("com.grpp.main");
-        Harmony.PatchAll();
-    }
-
     public override string Name => "grpp"; // General Roleplay Plugin
     public override string Author => "z5tm & Site-12 Development Team"; // Thank you Stick and VisLuke [i have now been informed that there were many more. thanks y'all :fire:]
-    public override Version Version => new(1, 4, 0);
-
-    public static Plugin? Singleton { get; set; }
-    public static Harmony Harmony;
+    public override Version Version => new(1, 4, 4);
+    public static Plugin Singleton => _singleton ?? throw new InvalidOperationException("Plugin is not initialized!");
+    private Harmony? _harmony;
+    public const string HarmonyInstanceName = "com.grpp.main";
+    
     private bool _wasEverEnabled;
-    public InternalConfiguration? GlobalConfig { get; set; }
-
+    private static Plugin? _singleton;
+    public InternalConfiguration? GlobalConfig { get; private set; }
+    
     public override void OnEnabled()
     {
         base.OnEnabled();
-        Singleton = this;
-
+        _singleton = this;
+        
         GlobalConfig = new InternalConfiguration();
-        if (_wasEverEnabled)
+        if (_wasEverEnabled || _harmony != null)
             return;
-
+        
         _wasEverEnabled = true;
-
+        _harmony = new Harmony(HarmonyInstanceName);
+        _harmony.PatchAll();
         Log.Info($"GRPP enabled.");
         ProjectMER.Events.Handlers.Schematic.SchematicSpawned += SpawningSchematic;
         
@@ -65,7 +61,9 @@ public sealed class Plugin : Plugin<Config>
 
     public override void OnDisabled()
     {
-        Singleton = null;
+        _harmony?.UnpatchAll();
+        _harmony = null;
+        _singleton = null;
         base.OnDisabled();
         GlobalConfig = null;
     }
@@ -74,12 +72,10 @@ public sealed class Plugin : Plugin<Config>
     {
         foreach (var gameObject in ev.Schematic.AttachedBlocks)
         {
-            GameObject? resultObj;
-
             var objPos = gameObject.transform.position;
             var objRot = gameObject.transform.rotation;
 
-            resultObj = gameObject.name switch
+            var resultObj = gameObject.name switch
             {
                 "HCZDoor" => PrefabHelper.Spawn(PrefabType.HCZBreakableDoor, objPos, objRot),
                 "EZDoor" => PrefabHelper.Spawn(PrefabType.EZBreakableDoor, objPos, objRot),
@@ -106,7 +102,7 @@ public sealed class Plugin : Plugin<Config>
     /// <summary>
     /// Lists all resource names within this assembly to the server console.
     /// </summary>
-    private void ListResourceNames()
+    private static void ListResourceNames()
     {
         foreach (var resourceName in typeof(Plugin).Assembly.GetManifestResourceNames())
             Log.Info($"RESOURCE: '{resourceName}'");
