@@ -15,17 +15,26 @@ public class RPConsole : ICommand
 
     public void RoomBroadcast(Player player, ushort duration, string message)
     {
-        Room currentroom = player.CurrentRoom;
-        Vector3 position = player.Position;
+        var currentroom = player.CurrentRoom;
+        var position = player.Position;
 
-        foreach (Player target in Player.List)
+        if ((currentroom == null) || (position == null))
         {
-            if (target.CurrentRoom.Zone == ZoneType.Surface || target.CurrentRoom.Zone == ZoneType.Unspecified)
+            return;
+        }
+
+        foreach (var target in Player.List)
+        {
+            if ((target.CurrentRoom == null) || (target.Position == null))
             {
-                if (Vector3.Distance(position, target.Position) <= Plugin.Singleton.Config.RPCommandBroadcastRange)
-                {
-                    target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{player.CustomName} says: " + message);
-                }
+                Log.Debug($"Skipping player {target.DisplayNickname} because their current room or position is null.");
+                continue;
+            }
+
+            if ((target.CurrentRoom.Zone == ZoneType.Surface || target.CurrentRoom.Zone == ZoneType.Unspecified) &&
+                Vector3.Distance(position, target.Position) <= Plugin.Singleton.Config.RPCommandBroadcastRange)
+            {
+                target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{player.CustomName} says: " + message);
             }
 
             else if (target.CurrentRoom == currentroom)
@@ -33,19 +42,14 @@ public class RPConsole : ICommand
                 target.Broadcast(Plugin.Singleton.Config.RPBroadcastDuration, $"{player.CustomName} says: " + message);
             }
         }
-    }
 
+        Log.Debug("Roleplay message sent by " + player.DisplayNickname + " in " + currentroom.Name + " with message: " + message);
+    }
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
-	{
-		//rp [duration] [message]
+    {
+        //rp [duration] [message]
 
         var player = Player.Get(sender);
-
-        if (arguments.Count == 0)
-		{
-			response = "Usage: .rp [message]";
-			return false;
-		}
 
         if (!player.IsAlive)
         {
@@ -53,8 +57,14 @@ public class RPConsole : ICommand
             return false;
         }
 
-		string message = string.Join(" ", arguments);
-		RoomBroadcast(Player.Get(sender), Plugin.Singleton.Config.RPCommandBroadcastDuration, message);
+        if (arguments.Count == 0)
+        {
+            response = "Usage: .rp [message]";
+            return false;
+        }
+
+        var message = string.Join(" ", arguments);
+        RoomBroadcast(player, Plugin.Singleton.Config.RPCommandBroadcastDuration, message);
 
         if (!Plugin.Singleton.Config.RPCommandWebhookUrl.IsEmpty())
             _ = AsyncWebhookHandler.LogMessage(
@@ -66,6 +76,7 @@ public class RPConsole : ICommand
 
 
         response = "Roleplay message successfully sent!";
-		return true;
+        return true;
     }
 }
+ 
